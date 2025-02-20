@@ -1,18 +1,28 @@
-*/config/development
-*/logs/log-*.php
-!*/logs/index.html
-*/cache/*
-!system/cache/*
-!*/cache/index.html
-!*/cache/.htaccess
+from flask import Flask, render_template, request
+from datetime import datetime ##Importa la clase datetime para manejar fechas y horas
+app = Flask(__name__)
 
-user_guide_src/build/*
-user_guide_src/cilexer/build/*
-user_guide_src/cilexer/dist/*
-user_guide_src/cilexer/pycilexer.egg-info/*
-
-#codeigniter 3
-application/logs/*
-!application/logs/index.html
-!application/logs/.htaccess
-/vendor/
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    mensaje = ""
+    if request.method == 'POST': ## muestra al usuario 
+        nombre = request.form.get('nombre').strip()
+        dia = request.form.get('dia')
+        mes = request.form.get('mes')
+        anio = request.form.get('anio')
+        
+        # Validación de entrada
+        if not (nombre and dia.isdigit() and mes.isdigit() and anio.isdigit()):
+            mensaje = "Por favor, introduce valores válidos."
+        else:
+            dia, mes, anio = int(dia), int(mes), int(anio)
+            if anio < 0 or mes not in range(1, 13) or dia not in range(1, 32):
+                mensaje = "Fecha no válida. Revisa los valores."
+            else:
+                fecha_nacimiento = datetime(anio, mes, dia)
+                hoy = datetime.today()
+                edad = hoy.year - fecha_nacimiento.year - ((hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day))
+                mensaje = f"{nombre}, tienes {edad} años."               
+    return render_template('index.html', mensaje=mensaje)
+if __name__ == '__main__':
+    app.run(debug=True)
